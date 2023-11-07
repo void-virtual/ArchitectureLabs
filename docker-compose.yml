@@ -86,6 +86,7 @@ services:
     container_name: messanger-api
     environment:
       - AUTH_API_HOST=auth-api
+      - CACHE=cache:6379
       - DB_HOST=proxysql
       - DB_PORT=6033
       - DB_LOGIN=stud
@@ -104,6 +105,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth-api
     environment:
+      - CACHE=cache:6379
       - DB_HOST=proxysql
       - DB_PORT=6033
       - DB_LOGIN=stud
@@ -114,12 +116,16 @@ services:
     networks:
       - arch-network
     depends_on:
-      - proxysql
+      proxysql:
+        condition: service_healthy
+      cache:
+        condition: service_started
 
 volumes:
   db-node-1-data:
   db-node-2-data:
   proxysql-data:
+  cache:
 
 networks:
   arch-network:
