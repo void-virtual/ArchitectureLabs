@@ -1,7 +1,0 @@
-/usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /tmp/Architecture -B /tmp/Architecture/cmake-build-debug-docker
--- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
--- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2") found components: Crypto 
--- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2") found components: SSL 
--- Configuring done
--- Generating done
--- Build files have been written to: /tmp/Architecture/cmake-build-debug-docker
