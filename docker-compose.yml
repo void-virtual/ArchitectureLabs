@@ -1,0 +1,118 @@
+version: '2.1'
+
+services:
+  db-node-1:
+    build:
+      context: mysql
+      dockerfile: Dockerfile
+    container_name: db-node-1
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: archdb
+      MYSQL_USER: stud
+      MYSQL_PASSWORD: stud
+      MYSQL_ROOT_PASSWORD: '1'
+    command: >
+      --sql-mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+      --general-log=ON
+      --log-queries-not-using-indexes=ON
+    networks:
+      - arch-network
+    ports:
+      - 3360:3306
+    volumes:
+      - db-node-1-data:/var/lib/mysql
+
+  db-node-2:
+    build:
+      context: mysql
+      dockerfile: Dockerfile
+    container_name: db-node-2
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: archdb
+      MYSQL_USER: stud
+      MYSQL_PASSWORD: stud
+      MYSQL_ROOT_PASSWORD: '1'
+    command: >
+      --sql-mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+      --general-log=ON
+      --log-queries-not-using-indexes=ON
+    networks:
+      - arch-network
+    ports:
+      - 3361:3306
+    volumes:
+      - db-node-2-data:/var/lib/mysql
+      
+  proxysql:
+    build:
+      context: proxysql
+      dockerfile: Dockerfile
+    container_name: proxysql
+    command: >
+      --initial
+    volumes:
+      - proxysql-data:/var/lib/proxysql
+    healthcheck:
+      test: "/usr/bin/mysql --user=stud --password=stud --execute \"SHOW DATABASES;\""
+      timeout: 20s
+      retries: 5
+    depends_on:
+      - db-node-1
+      - db-node-2
+      
+    networks:
+      - arch-network
+    ports:
+      # Mysql Client Port
+      - "6033:6033"
+      # Mysql Admin Port
+      - "6032:6032"
+
+  messanger-api:
+    build:
+      context: messanger_api_service
+      dockerfile: Dockerfile
+    container_name: messanger-api
+    environment:
+      - AUTH_API_HOST=auth-api
+      - DB_HOST=proxysql
+      - DB_PORT=6033
+      - DB_LOGIN=stud
+      - DB_PASSWORD=stud
+      - DB_DATABASE=archdb
+    ports:
+      - 8080:8080
+    networks:
+      - arch-network
+    depends_on:
+      - proxysql
+
+  auth-api:
+    build:
+      context: auth_service
+      dockerfile: Dockerfile
+    container_name: auth-api
+    environment:
+      - DB_HOST=proxysql
+      - DB_PORT=6033
+      - DB_LOGIN=stud
+      - DB_PASSWORD=stud
+      - DB_DATABASE=archdb
+    ports:
+      - 8081:8081
+    networks:
+      - arch-network
+    depends_on:
+      - proxysql
+
+volumes:
+  db-node-1-data:
+  db-node-2-data:
+  proxysql-data:
+
+networks:
+  arch-network:
+    driver: "bridge"
+    external: false

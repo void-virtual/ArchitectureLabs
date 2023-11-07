@@ -1,0 +1,41 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: 'Arch Lab Example API'
+  description: Пример API для первого домашнего задания по курсу Архитектура программных систем
+servers:
+  - url: http://localhost:8081
+    description: Other server
+paths:
+  /message:
+    get:
+      summary: Какой-то интерфейс
+      parameters:
+      - name: params
+        description: какой-то параметр
+        in: query
+        required: true
+        schema:
+          type: string
+     
+      responses:
+        '200':
+          description: User ID
+          content:
+            application/json:
+              schema:
+               type: string
+        401:
+          description: Not authentication
+          content:
+            application/json:
+              schema:
+                type: string
+ 
+components:
+  securitySchemes:
+      basicAuth:     
+        type: http
+        scheme: basic
+security:
+  - basicAuth: []

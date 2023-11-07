@@ -1,0 +1,420 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: 'Arch Lab Example API'
+  description: Пример API для первого домашнего задания по курсу Архитектура программных систем
+servers:
+  - url: http://localhost:8080
+    description: Управление чатами и сообщениями
+  - url: http://localhost:8081
+    description: Управление пользователями
+paths:
+  /chat/searchByUserId:
+    get:
+      summary: Поиск чата по id пользователя
+      parameters:
+      - name: userId
+        description: id пользователя
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Чаты в которых состоит пользователь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/сhats'
+        500:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /chat/searchByChatId:
+    get:
+      summary: Поиск чата по id пользователя
+      parameters:
+      - name: chatId
+        description: id чата
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Чат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/сhat'
+        404:
+          description: Нет чата с запрашиваемым id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /chat:
+    post:
+      summary: Создание чата
+      parameters:
+      - name: chatName
+        description: название чата
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Чат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chat_id'
+        500:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /chat/addMember:
+    post:
+      summary: Добавление пользователя в чат
+      parameters:
+      - name: chatId
+        description: id чата
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: userId
+        description: id пользователя
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Пустое сообщение
+        500:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /message:
+    post:
+      summary: Добавление сообщения в чат
+      parameters:
+      - name: chatId
+        description: id чата
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: text
+        description: текст сообщения
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: id добавленного сообщения
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: integer
+        500:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: Получение сообщений из чата
+      parameters:
+      - name: chatId
+        description: id чата
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Сообщения из чата
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - chatId
+                  - messages
+                properties:
+                  chatId:
+                    type: integer
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - chat_id
+                        - id
+                        - message
+                        - user_id
+                      properties:
+                        chat_id:
+                          type: integer
+                        id:
+                          type: integer
+                        message:
+                          type: string
+                        user_id:
+                          type: integer
+        500:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  
+  /search:
+    get:
+      summary: (СЕРВИС АВТОРИЗАЦИИ) Поиск пользователей по маске имени и фамилии
+      parameters:
+      - name: first_name
+        description: Имя
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: last_name
+        description: Фамилия
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The users for the provided masks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/users'
+        404:
+          description: No user found for the provided mask
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth:
+    get:
+      summary: (СЕРВИС АВТОРИЗАЦИИ) Проверка аутентификации
+      parameters:
+      - name: token
+        description: Токен пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: User ID
+          content:
+            application/json:
+              schema:
+               type: object
+               required:
+                 - user_id
+               properties:
+                 user_id:
+                  type: integer
+        401:
+          description: Not authentication
+          content:
+            application/json:
+              schema:
+                type: string
+  /user:
+    put:
+      summary: (СЕРВИС АВТОРИЗАЦИИ) Получение токена для пользователя
+      parameters:
+      - name: login
+        description: Уникальный идентификатор пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: password
+        description: Пароль пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Токен пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: (СЕРВИС АВТОРИЗАЦИИ) Добавление нового пользователя
+      parameters:
+      - name: first_name
+        description: Имя пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: last_name
+        description: Фамилия пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: email
+        description: email пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: title
+        description: Форма обращение к пользователя 
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: login
+        description: login пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: password
+        description: пароль пользователя
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Идентификатор, добавленного пользователя
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: Ошибка добавления пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    message_id:
+      description: Идентификатор сообщенимя пользователя
+      type: integer
+    user_id:
+      description: Уникальный идентификатор пользователя
+      type: integer
+    chat_id:
+      description: Идентификатор чата
+      type: integer
+    users:
+      type: array
+      items:
+        $ref: '#/components/schemas/user'
+    сhats:
+      type: array
+      items:
+        $ref: '#/components/schemas/сhat'
+    сhat:
+      type: object
+      required:
+        - creator_id
+        - id
+        - name
+      properties:
+        id: 
+          $ref: '#/components/schemas/chat_id'
+        creator_id:
+          $ref: '#/components/schemas/user_id'
+        name:
+          description: Название чата
+          type: string
+    user:
+      type: object
+      required:
+        - id
+        - first_name
+        - last_name
+        - email
+        - title
+        - login
+        - password
+      properties:
+        id:
+          $ref: '#/components/schemas/user_id'
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        title:
+          type: string
+        login:
+          type: string
+        password:
+          type: string
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: Сообщение о ошибке
+          type: string
+  securitySchemes:
+      basicAuth:     
+        type: http
+        scheme: basic
+security:
+  - basicAuth: []

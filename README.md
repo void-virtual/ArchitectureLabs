@@ -1,1 +1,2 @@
 # ArchitectureLabs
+Вариант 5.
