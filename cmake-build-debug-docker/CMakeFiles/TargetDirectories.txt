@@ -1,0 +1,4 @@
+/tmp/Architecture/cmake-build-debug-docker/CMakeFiles/messanger_api.dir
+/tmp/Architecture/cmake-build-debug-docker/CMakeFiles/auth_api.dir
+/tmp/Architecture/cmake-build-debug-docker/CMakeFiles/edit_cache.dir
+/tmp/Architecture/cmake-build-debug-docker/CMakeFiles/rebuild_cache.dir

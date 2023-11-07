@@ -2,8 +2,13 @@ cmake_minimum_required(VERSION 3.2)
 
 project(hl_server C CXX)
 
-SET (MESSANGER_API_BINARY "messanger_api")
-SET (AUTH_SERVICE "auth_api")
+SET(MESSANGER_API_BINARY "messanger_api")
+SET(AUTH_SERVICE "auth_api")
+SET(REDISCPP_FLAGS "-DREDISCPP_HEADER_ONLY=ON")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall ${REDISCPP_FLAGS}")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -g0 -DNDEBUG -Wall ${REDISCPP_FLAGS}")
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenSSL)
 find_package(Threads)
@@ -20,16 +25,13 @@ include_directories("/usr/include/mysql")
 include_directories("/usr/local/include/mysql")
 link_directories("/usr/local/lib")
 
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 add_executable(${MESSANGER_API_BINARY} messanger_api_service/main.cpp 
                                  config/config.cpp 
                                  database/database.cpp
                                  database/user.cpp
                                  database/message.cpp
                                  database/chat.cpp
-                                 database/user_to_chat.cpp)
+                                 database/user_to_chat.cpp database/cache.cpp database/cache.h)
 
 
 target_include_directories(${MESSANGER_API_BINARY} PRIVATE "${CMAKE_BINARY_DIR}")

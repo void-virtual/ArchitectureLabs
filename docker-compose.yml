@@ -19,7 +19,7 @@ services:
     networks:
       - arch-network
     ports:
-      - 3360:3306
+      - "3360:3306"
     volumes:
       - db-node-1-data:/var/lib/mysql
 
@@ -41,7 +41,7 @@ services:
     networks:
       - arch-network
     ports:
-      - 3361:3306
+      - "3361:3306"
     volumes:
       - db-node-2-data:/var/lib/mysql
       
@@ -50,12 +50,10 @@ services:
       context: proxysql
       dockerfile: Dockerfile
     container_name: proxysql
-    command: >
-      --initial
     volumes:
       - proxysql-data:/var/lib/proxysql
     healthcheck:
-      test: "/usr/bin/mysql --user=stud --password=stud --execute \"SHOW DATABASES;\""
+      test: "/usr/bin/mysql -h 127.0.0.1 -P 6033 --user=stud --password=stud --execute \"SHOW DATABASES;\""
       timeout: 20s
       retries: 5
     depends_on:
@@ -70,6 +68,17 @@ services:
       # Mysql Admin Port
       - "6032:6032"
 
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    networks:
+      - arch-network
+    volumes:
+      - cache:/data
+
   messanger-api:
     build:
       context: messanger_api_service
@@ -83,7 +92,7 @@ services:
       - DB_PASSWORD=stud
       - DB_DATABASE=archdb
     ports:
-      - 8080:8080
+      - "8080:8080"
     networks:
       - arch-network
     depends_on:
@@ -101,7 +110,7 @@ services:
       - DB_PASSWORD=stud
       - DB_DATABASE=archdb
     ports:
-      - 8081:8081
+      - "8081:8081"
     networks:
       - arch-network
     depends_on:
