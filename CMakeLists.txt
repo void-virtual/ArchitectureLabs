@@ -22,6 +22,7 @@ endif()
 
 include_directories(${Poco_INCLUDE_DIRS})
 include_directories("/usr/include/mysql")
+include_directories("/usr/local/include/redis-cpp")
 include_directories("/usr/local/include/mysql")
 link_directories("/usr/local/lib")
 

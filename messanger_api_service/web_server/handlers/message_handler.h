@@ -112,11 +112,7 @@ public:
                 ok(response, content);
                 return;
             } 
-            // else if (isPut(request)) {
-            //     return;
-            // } else if (isDelete(request)) {
-            //     return;
-            // }
+
         }
         catch (Poco::Exception& ex) 
         {
