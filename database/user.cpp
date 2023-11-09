@@ -60,7 +60,7 @@ namespace database
             throw;
         }
 
-        std::cout << "Entity User initiated\n";
+        std::cout << "Entity User initiated" << std::endl;
     }
 
     Poco::JSON::Object::Ptr User::toJSON() const
@@ -324,7 +324,7 @@ namespace database
             Poco::Data::Statement insert(session);
             std::string shard_hint = database::Database::sharding_hint(_uuid);
 
-            insert << "INSERT INTO User (uuid, first_name,last_name,email,title,login,password) VALUES(?, ?, ?, ?, ?, ?)" + shard_hint,
+            insert << "INSERT INTO User (uuid, first_name,last_name,email,title,login,password) VALUES(?, ?, ?, ?, ?, ?, ?)" + shard_hint,
                 use(_uuid),
                 use(_first_name),
                 use(_last_name),
