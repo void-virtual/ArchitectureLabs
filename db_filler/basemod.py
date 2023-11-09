@@ -59,4 +59,8 @@ class MySQLConnection:
     def insert_values(self, insert_command, value_list, hash_func):
         for value in value_list:
             hint = get_hint(hash_func(value))
-            self.cursor.execute(insert_command + hint, value)
+            try:
+                self.cursor.execute(insert_command + hint, value)
+            except mysql.connector.Erorr as err:
+                if err.errno == errorcode.ER_DUP_ENTRY:
+                    print("some keys duplicates")
