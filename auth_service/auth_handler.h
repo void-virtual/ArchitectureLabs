@@ -113,7 +113,7 @@ public:
     {
         try {
             HTMLForm form(request, request.stream());
-            if (isGet(request) && form.has("uuid")) {
+            if (isGet(request) && form.has("user")) {
                 std::string uuid = form.get("uuid");
                 bool use_cache = !form.has("no_cache");
 

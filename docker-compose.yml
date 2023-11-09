@@ -59,7 +59,6 @@ services:
     depends_on:
       - db-node-1
       - db-node-2
-      
     networks:
       - arch-network
     ports:
@@ -67,6 +66,15 @@ services:
       - "6033:6033"
       # Mysql Admin Port
       - "6032:6032"
+
+  init-db:
+    build:
+      context: db_filler
+    networks:
+      - arch-network
+    depends_on:
+      proxysql:
+        condition: service_healthy
 
   cache:
     image: redis:6.2-alpine
@@ -98,6 +106,9 @@ services:
       - arch-network
     depends_on:
       - proxysql
+      - init-db
+
+
 
   auth-api:
     build:
@@ -116,6 +127,8 @@ services:
     networks:
       - arch-network
     depends_on:
+      init-db:
+        condition: service_completed_successfully
       proxysql:
         condition: service_healthy
       cache:
