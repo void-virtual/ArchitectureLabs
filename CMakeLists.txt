@@ -32,7 +32,8 @@ add_executable(${MESSANGER_API_BINARY} messanger_api_service/main.cpp
                                  database/user.cpp
                                  database/message.cpp
                                  database/chat.cpp
-                                 database/user_to_chat.cpp database/cache.cpp database/cache.h)
+                                 database/user_to_chat.cpp 
+                                 database/cache.cpp)
 
 
 target_include_directories(${MESSANGER_API_BINARY} PRIVATE "${CMAKE_BINARY_DIR}")
@@ -49,7 +50,11 @@ target_link_libraries(${MESSANGER_API_BINARY} PRIVATE
                              ZLIB::ZLIB)
 
 
-add_executable(${AUTH_SERVICE} auth_service/auth_main.cpp database/user.cpp database/database.cpp config/config.cpp)
+add_executable(${AUTH_SERVICE} auth_service/auth_main.cpp 
+                               database/user.cpp 
+                               database/database.cpp
+                               database/cache.cpp 
+                               config/config.cpp)
 target_include_directories(${AUTH_SERVICE} PRIVATE "${CMAKE_BINARY_DIR}")
 target_compile_options(${AUTH_SERVICE} PRIVATE -Wall -Wextra -pedantic -Werror )
 set_target_properties(${AUTH_SERVICE} PROPERTIES LINKER_LANGUAGE CXX)
