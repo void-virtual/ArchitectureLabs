@@ -116,6 +116,28 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CREATE_TOPICS: "event_server:1:1"
 
+  writer:
+    build:
+      context: kafka
+    environment:
+      - DB_HOST=proxy_sql
+      - DB_PORT=6033
+      - DB_DATABASE=archdb
+      - DB_LOGIN=stud
+      - DB_PASSWORD=stud
+      - CACHE=cache:6379
+      - QUEUE_HOST=kafka-node-1:9092
+      - QUEUE_TOPIC=event_server
+      - QUEUE_GROUP_ID=0
+    networks:
+      - arch-network
+    depends_on:
+      - db-node-1
+      - db-node-2
+      - proxysql
+      - cache
+      - kafka-node-1
+
   messenger-api:
     build:
       context: messenger_api_service
@@ -129,6 +151,9 @@ services:
       - DB_LOGIN=stud
       - DB_PASSWORD=stud
       - DB_DATABASE=archdb
+      - QUEUE_HOST=kafka-node-1:9092
+      - QUEUE_TOPIC=event_server
+      - QUEUE_GROUP_ID=0
     ports:
       - "8080:8080"
     networks:
@@ -151,13 +176,16 @@ services:
       - DB_LOGIN=stud
       - DB_PASSWORD=stud
       - DB_DATABASE=archdb
+      - QUEUE_HOST=kafka-node-1:9092
+      - QUEUE_TOPIC=event_server
+      - QUEUE_GROUP_ID=0
     ports:
       - "8081:8081"
     networks:
       - arch-network
     depends_on:
       init-db:
-        condition: service_completed_successfully
+        condition: service_started
       proxysql:
         condition: service_healthy
       cache:
