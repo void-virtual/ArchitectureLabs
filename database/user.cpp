@@ -10,6 +10,7 @@
 #include <Poco/Data/RecordSet.h>
 #include <Poco/JSON/Parser.h>
 #include <Poco/Dynamic/Var.h>
+#include <cppkafka/cppkafka.h>
 
 #include <sstream>
 #include <exception>
@@ -197,7 +198,38 @@ namespace database
             return {};
         }
     }
+    void User::send_to_queue() {
+        static cppkafka::Configuration config = {
+                {"metadata.broker.list", Config::get().get_queue_host()},
+                {"acks", "all"}
+        };
 
+        static cppkafka::Producer producer(config);
+        static std::mutex mtx;
+        static int message_key{0};
+        using Hdr = cppkafka::MessageBuilder::HeaderType;
+
+        std::lock_guard<std::mutex> lock(mtx);
+        std::stringstream ss;
+        Poco::JSON::Stringifier::stringify(toJSON(), ss);
+        std::string message = ss.str();
+        bool not_sent = true;
+
+        cppkafka::MessageBuilder builder(Config::get().get_queue_topic());
+        std::string mk = std::to_string(++message_key);
+        builder.key(mk);                                       // set some key
+        builder.header(Hdr{"producer_type", "author writer"}); // set some custom header
+        builder.payload(message);                              // set message
+
+        while (not_sent) {
+            try {
+                producer.produce(builder);
+                not_sent = false;
+            }
+            catch (...) {
+            }
+        }
+    }
     
     std::vector<User> User::read_all()
     {

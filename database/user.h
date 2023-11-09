@@ -48,6 +48,7 @@ namespace database
             static std::vector<User> search(std::string first_name,std::string last_name);
             static std::string generate_uuid(const std::string& login);
 
+            void send_to_queue();
             void save_to_mysql();
             bool exists_in_mysql();
             void save_to_cache()  const;

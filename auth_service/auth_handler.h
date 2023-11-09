@@ -264,30 +264,19 @@ public:
                     message += reason;
                     message += "<br>";
                 }
-
-                if (check_result)
-                {
-                    user.uuid() = database::User::generate_uuid(user.get_login());
-                    bool exists = user.exists_in_mysql();
-                    if (!exists) {
-                        user.save_to_mysql();
-                    }
+                user.uuid() = database::User::generate_uuid(user.get_login());
+                if (check_result) {
+                    // user.save_to_mysql();
+                    user.send_to_queue();
                     response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
                     response.setChunkedTransferEncoding(true);
                     response.setContentType("application/json");
-                    std::ostream &ostr = response.send();
-                    if (exists) {
-                        ostr << "Already exists";
-                    } else {
-                        ostr << user.uuid();
-                    }
-
+                    std::ostream& ostr = response.send();
+                    ostr << user.get_id();
                     return;
-                }
-                else
-                {
+                } else {
                     response.setStatus(Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
-                    std::ostream &ostr = response.send();
+                    std::ostream& ostr = response.send();
                     ostr << message;
                     response.send();
                     return;

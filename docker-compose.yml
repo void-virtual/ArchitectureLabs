@@ -87,6 +87,35 @@ services:
     volumes:
       - cache:/data
 
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+    networks:
+      - arch-network
+
+  kafka-node-1:
+    image: wurstmeister/kafka
+    container_name: kafka-node-1
+    depends_on:
+      - zookeeper
+    ports:
+      - 2181:2181
+      - 9092:9092
+    networks:
+      - arch-network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_HOST_NAME: kafka-node-1
+      ADVERTISED_PORT: 9092
+      ADVERTISED_HOST_NAME: kafka-node-1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CREATE_TOPICS: "event_server:1:1"
+
   messenger-api:
     build:
       context: messenger_api_service
