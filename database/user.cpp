@@ -34,7 +34,7 @@ namespace database
             {
                 Statement create_stmt(session);
                 create_stmt << "CREATE TABLE IF NOT EXISTS `User` (`id` INT NOT NULL AUTO_INCREMENT,"
-                            << "`uuid` VARCHAR(256) NOT NULL"
+                            << "`uuid` VARCHAR(256) NOT NULL,"
                             << "`first_name` VARCHAR(256) NOT NULL,"
                             << "`last_name` VARCHAR(256) NOT NULL,"
                             << "`login` VARCHAR(256) NOT NULL,"
