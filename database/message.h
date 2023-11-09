@@ -12,7 +12,7 @@ namespace database
         private:
             long _id;
 			long _chat_id;
-			long _user_id;
+			std::string _user_id;
 			std::string _message;
             
 
@@ -21,17 +21,17 @@ namespace database
             static Message fromJSON(const std::string & str);
             long               get_id() const;
             long               get_chat_id() const;
-            long               get_user_id() const;
+            const std::string &get_user_id() const;
             const std::string &get_message() const;
 
             long&        id();
             long&        chat_id();
-            long&        user_id();
+            std::string &user_id();
             std::string &message();
 
             static void init();
             static std::optional<Message> read_by_id(long id);
-            static std::optional<Message> read_by_user_id(long id);
+            static std::optional<Message> read_by_user_id(std::string id);
             static std::vector<Message> read_by_chat_id(long chat_id);
             void save_to_mysql();
 

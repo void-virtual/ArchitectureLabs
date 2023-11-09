@@ -18,7 +18,7 @@ class AuthServiceClient {
         std::string _auth_service_url = "http://" + std::string(std::getenv("AUTH_API_HOST")) + ":8081/user/auth";
     public:
     static const int NOT_AUTHORIZED = -1;
-    int checkAccess(HTTPServerRequest &request) {
+    std::optional<std::string> checkAccess(HTTPServerRequest &request) {
         try {
             std::string scheme;
             std::string info;
@@ -49,24 +49,24 @@ class AuthServiceClient {
 
                     if (response.getStatus() != 200) {
                         std::cout << "Gotten " << response.getStatus() << std::endl;
-                        return NOT_AUTHORIZED;
+                        return {};
                     }
                     Poco::JSON::Parser parser;
                     auto result = parser.parse(string_result);
-                    return result.extract<Poco::JSON::Object::Ptr>()->getValue<long>("user_id");
+                    return result.extract<Poco::JSON::Object::Ptr>()->getValue<std::string>("user_id");
                 
             }
-            return NOT_AUTHORIZED;
+            return {};
         }
         catch (Poco::Exception &ex)
         {
             std::cout << "exception:" << ex.what() << std::endl;
-            return NOT_AUTHORIZED;
+            return {};
         }
         catch (...)
         {
             std::cout << "Unexpected exception" << std::endl;
-            return NOT_AUTHORIZED;
+            return {};
         }
     }
 };

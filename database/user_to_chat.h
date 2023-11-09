@@ -12,20 +12,20 @@ namespace database
     class UserToChat{
         private:
             long _chat_id;
-            long _user_id;
+            std::string _user_id;
 
         public:
 
             static UserToChat fromJSON(const std::string & str);
 
-            long             get_chat_id() const;
-            long             get_user_id() const;
+            long get_chat_id() const;
+            std::string get_user_id() const;
 
-            long&        chat_id();
-            long&        user_id();
+            long& chat_id();
+            std::string& user_id();
 
             static void init();
-            static std::vector<Chat> read_chats_by_user_id(long user_id);
+            static std::vector<Chat> read_chats_by_user_id(std::string user_id);
             static std::optional<long> auth(std::string &login, std::string &password);
             void save_to_mysql();
 

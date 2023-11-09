@@ -29,7 +29,7 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Statement create_stmt(session);
             create_stmt << "CREATE TABLE IF NOT EXISTS `UserToChat` (`chat_id` INT NOT NULL,"
-                        << "`user_id` INT NOT NULL,"
+                        << "`user_id` VARCHAR(256) NOT NULL,"
                         << "PRIMARY KEY(chat_id,user_id))-- sharding:0",
                 now;
         }
@@ -67,13 +67,13 @@ namespace database
         Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
 
         user_to_chat.chat_id() = object->getValue<long>("chat_id");
-        user_to_chat.user_id() = object->getValue<long>("user_id");
+        user_to_chat.user_id() = object->getValue<std::string>("user_id");
 
         return user_to_chat;
     }
 
 
-    std::vector<Chat> UserToChat::read_chats_by_user_id(long user_id)
+    std::vector<Chat> UserToChat::read_chats_by_user_id(std::string user_id)
     {
         try
         {
@@ -144,7 +144,7 @@ namespace database
         return _chat_id;
     }
 
-    long UserToChat::get_user_id() const
+    std::string UserToChat::get_user_id() const
     {
         return _user_id;
     }
@@ -154,7 +154,7 @@ namespace database
         return _chat_id;
     }
 
-    long &UserToChat::user_id()
+    std::string &UserToChat::user_id()
     {
         return _user_id;
     }

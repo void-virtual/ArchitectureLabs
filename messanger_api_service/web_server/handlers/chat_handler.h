@@ -64,12 +64,13 @@ public:
     void handleRequest(HTTPServerRequest &request,
                        HTTPServerResponse &response)
     {
-        long user_id = authServiceClient().checkAccess(request);
+        std::optional<std::string> user_id_opt = authServiceClient().checkAccess(request);
 
-        if (user_id == AuthServiceClient::NOT_AUTHORIZED) {
+        if (!user_id_opt) {
             unauthorized(response);
             return;
         }
+        const std::string& user_id = *user_id_opt;
 
         HTMLForm form(request, request.stream());
         try
@@ -82,7 +83,7 @@ public:
                     if (!form.has("chatId")) {
                         badRequest(response, "chatId not exist's");
                     }
-                    auto chatId = atol(form.get("chatId").c_str());
+                    auto chatId = std::stol(form.get("chatId"));
                     auto chat = database::Chat::read_by_id(chatId);
                     if (chat) {
                         auto jsonChat = chat->toJSON();
@@ -98,7 +99,7 @@ public:
                         badRequest(response, "userId not exist's");
                         return;
                     }
-                    long query_param_id = atol(form.get("userId").c_str());
+                    std::string query_param_id = form.get("userId");
 
                     auto users_to_chats = database::UserToChat::read_chats_by_user_id(query_param_id);
                     Poco::JSON::Object::Ptr content = new Poco::JSON::Object();

@@ -113,7 +113,38 @@ public:
     {
         try {
             HTMLForm form(request, request.stream());
+            if (isGet(request) && form.has("uuid")) {
+                std::string uuid = form.get("uuid");
+                bool use_cache = !form.has("no_cache");
 
+                std::optional<database::User> result = database::User::read_by_id(uuid, use_cache);
+                if (result) {
+                    if (use_cache) {
+                        result->save_to_cache();
+                    }
+                    response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+                    response.setChunkedTransferEncoding(true);
+                    response.setContentType("application/json");
+                    std::ostream& ostr = response.send();
+                    Poco::JSON::Stringifier::stringify(remove_password(result->toJSON()),
+                                                       ostr);
+                    return;
+                } else {
+                    response.setStatus(
+                            Poco::Net::HTTPResponse::HTTPStatus::HTTP_NOT_FOUND);
+                    response.setChunkedTransferEncoding(true);
+                    response.setContentType("application/json");
+                    Poco::JSON::Object::Ptr root = new Poco::JSON::Object();
+                    root->set("type", "/errors/not_found");
+                    root->set("title", "User not found");
+                    root->set("status", "404");
+                    root->set("detail", "User not found");
+                    root->set("instance", "/user");
+                    std::ostream& ostr = response.send();
+                    Poco::JSON::Stringifier::stringify(root, ostr);
+                    return;
+                }
+            }
             if (isGet(request) && contains(request.getURI(), "/user/auth")) {
                 if (!form.has("token")) {
                     badRequest(response);

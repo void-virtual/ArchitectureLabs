@@ -28,7 +28,7 @@ namespace database
             Statement create_stmt(session);
             create_stmt << "CREATE TABLE IF NOT EXISTS `Message` (`id` INT NOT NULL AUTO_INCREMENT,"
                         << "`chat_id` INT NOT NULL,"
-                        << "`user_id` INT NOT NULL,"
+                        << "`user_id` VARCHAR(256) NOT NULL,"
                         << "`message` VARCHAR(1024) NOT NULL,"
                         << "PRIMARY KEY (`id`))-- sharding:0",
                 now;
@@ -69,7 +69,7 @@ namespace database
 
         message.id() = object->getValue<long>("id");
         message.chat_id() = object->getValue<long>("chat_id");
-        message.user_id() = object->getValue<long>("user_id");
+        message.user_id() = object->getValue<std::string>("user_id");
         message.message() = object->getValue<std::string>("message");
 
         return message;
@@ -104,6 +104,39 @@ namespace database
 
             std::cout << "statement:" << e.what() << std::endl;
             
+        }
+        return {};
+    }
+
+    std::optional<Message> Message::read_by_user_id(std::string user_id)
+    {
+        try
+        {
+            Poco::Data::Session session = database::Database::get().create_session();
+            Poco::Data::Statement select(session);
+            Message a;
+            select << "SELECT id, chat_id, user_id, message FROM Message where user_id=?-- sharding:0",
+                    into(a._id),
+                    into(a._chat_id),
+                    into(a._user_id),
+                    into(a._message),
+                    use(user_id),
+                    range(0, 1); //  iterate over result set one row at a time
+
+            select.execute();
+            Poco::Data::RecordSet rs(select);
+            if (rs.moveFirst()) return a;
+        }
+
+        catch (Poco::Data::MySQL::ConnectionException &e)
+        {
+            std::cout << "connection:" << e.what() << std::endl;
+        }
+        catch (Poco::Data::MySQL::StatementException &e)
+        {
+
+            std::cout << "statement:" << e.what() << std::endl;
+
         }
         return {};
     }
@@ -157,7 +190,7 @@ namespace database
         return _chat_id;
     }
 
-    long Message::get_user_id() const
+    const std::string& Message::get_user_id() const
     {
         return _user_id;
     }
@@ -177,7 +210,7 @@ namespace database
         return _chat_id;
     }
 
-    long &Message::user_id()
+    std::string& Message::user_id()
     {
         return _user_id;
     }
@@ -225,4 +258,5 @@ namespace database
         }
         return {};
     }
+
 }

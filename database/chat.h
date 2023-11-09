@@ -12,19 +12,19 @@ namespace database
         private:
             long _id;
             std::string _name;
-            long _creator_id;
+            std::string _creator_id;
 
         public:
 
             static Chat fromJSON(const std::string & str);
 
-            long               get_id() const;
+            long get_id() const;
             const std::string &get_name() const;
-            long               get_creator_id() const;
+            const std::string& get_creator_id() const;
 
-            long&        id();
+            long& id();
             std::string &name();
-            long&        creator_id();
+            std::string &creator_id();
 
             static void init();
             static std::optional<Chat> read_by_id(long id);

@@ -28,7 +28,7 @@ namespace database
             Statement create_stmt(session);
             create_stmt << "CREATE TABLE IF NOT EXISTS `Chat` (`id` INT NOT NULL AUTO_INCREMENT,"
                         << "`name` VARCHAR(1024) NOT NULL,"
-                        << "`creator_id` INT NOT NULL,"
+                        << "`creator_id` VARCHAR(256) NOT NULL,"
                         << "PRIMARY KEY (`id`))-- sharding:0",
                 now;
         }
@@ -161,10 +161,10 @@ namespace database
         return _name;
     }
     
-    long Chat::get_creator_id() const {
+    const std::string& Chat::get_creator_id() const {
         return _creator_id;
     }
-    long& Chat::creator_id() {
+    std::string& Chat::creator_id() {
         return _creator_id;
     }
 }

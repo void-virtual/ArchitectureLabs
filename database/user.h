@@ -42,7 +42,7 @@ namespace database
             std::string &password();
 
             static void init();
-            static std::optional<User> read_by_id(std::string uuid);
+            static std::optional<User> read_by_id(std::string uuid, bool use_cache = true);
             static std::optional<std::string> auth(std::string login, std::string password);
             static std::vector<User> read_all();
             static std::vector<User> search(std::string first_name,std::string last_name);

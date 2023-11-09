@@ -99,10 +99,13 @@ namespace database
     }
 
 
-    std::optional<User> User::read_by_id(std::string uuid)
-    {
-        try
-        {
+    std::optional<User> User::read_by_id(std::string uuid, bool use_cache) {
+        if (use_cache) {
+            if (std::optional<User> user = read_from_cache_by_id(uuid)) {
+                return user;
+            }
+        }
+        try {
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement select(session);
             User a;

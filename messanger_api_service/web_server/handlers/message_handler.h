@@ -63,12 +63,14 @@ public:
                        HTTPServerResponse &response)
     {
         
-        long user_id = authServiceClient().checkAccess(request);
+        std::optional<std::string> user_id_opt = authServiceClient().checkAccess(request);
 
-        if (user_id == AuthServiceClient::NOT_AUTHORIZED) {
+        if (!user_id_opt) {
             unauthorized(response);
             return;
         }
+
+        const std::string& user_id = *user_id_opt;
 
         HTMLForm form(request, request.stream());
         try
@@ -79,7 +81,7 @@ public:
                     badRequest(response);
                     return;
                 }
-                long chat_id = atol(form.get("chatId").c_str());
+                long chat_id = std::stol(form.get("chatId"));
                 auto messages = database::Message::read_by_chat_id(chat_id);
                 Poco::JSON::Object::Ptr content = new Poco::JSON::Object();
                 Poco::JSON::Array::Ptr arr = new Poco::JSON::Array();
