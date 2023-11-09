@@ -16,8 +16,8 @@ namespace database
         Cache();
     public:
         static Cache get();
-        void put(long id, const std::string& val);
-        bool get(long id, std::string& val);
+        void put(const std::string& uuid, const std::string& val);
+        bool get(const std::string& uuid, std::string& val);
 
     };
 }

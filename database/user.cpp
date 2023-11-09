@@ -3,6 +3,7 @@
 #include "../config/config.h"
 #include "../database/cache.h"
 
+#include <Poco/UUIDGenerator.h>
 #include <Poco/Data/MySQL/Connector.h>
 #include <Poco/Data/MySQL/MySQLException.h>
 #include <Poco/Data/SessionFactory.h>
@@ -17,6 +18,8 @@
 using namespace Poco::Data::Keywords;
 using Poco::Data::Session;
 using Poco::Data::Statement;
+using Poco::UUID;
+using Poco::UUIDGenerator;
 
 namespace database
 {
@@ -31,13 +34,14 @@ namespace database
             {
                 Statement create_stmt(session);
                 create_stmt << "CREATE TABLE IF NOT EXISTS `User` (`id` INT NOT NULL AUTO_INCREMENT,"
+                            << "`uuid` VARCHAR(256) NOT NULL"
                             << "`first_name` VARCHAR(256) NOT NULL,"
                             << "`last_name` VARCHAR(256) NOT NULL,"
                             << "`login` VARCHAR(256) NOT NULL,"
                             << "`password` VARCHAR(256) NOT NULL,"
                             << "`email` VARCHAR(256) NULL,"
                             << "`title` VARCHAR(1024) NULL,"
-                            << "PRIMARY KEY (`id`),KEY `fn` (`first_name`),KEY `ln` (`last_name`));"
+                            << "PRIMARY KEY (`id`),KEY `uuid_key` (`uuid`),KEY `fn` (`first_name`),KEY `ln` (`last_name`));"
                             << hint,
                     now;
                 std::cout << create_stmt.toString() << std::endl;
@@ -64,6 +68,7 @@ namespace database
         Poco::JSON::Object::Ptr root = new Poco::JSON::Object();
 
         root->set("id", _id);
+        root->set("uuid", _uuid);
         root->set("first_name", _first_name);
         root->set("last_name", _last_name);
         root->set("email", _email);
@@ -82,6 +87,7 @@ namespace database
         Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
 
         user.id() = object->getValue<long>("id");
+        user.uuid() = object->getValue<std::string>("uuid");
         user.first_name() = object->getValue<std::string>("first_name");
         user.last_name() = object->getValue<std::string>("last_name");
         user.email() = object->getValue<std::string>("email");
@@ -92,24 +98,25 @@ namespace database
         return user;
     }
 
-    
-    std::optional<User> User::read_by_id_and_login(long id, const std::string &login)
+
+    std::optional<User> User::read_by_id(std::string uuid)
     {
         try
         {
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement select(session);
             User a;
-            std::string shard_hint = database::Database::sharding_hint(login);
-            select << "SELECT id, first_name, last_name, email, title,login,password FROM User where id=?"+shard_hint,
+            std::string shard_hint = database::Database::sharding_hint(uuid);
+            select << "SELECT id, uuid, first_name, last_name, email, title,login,password FROM User where uuid=?" + shard_hint,
                 into(a._id),
+                into(a._uuid),
                 into(a._first_name),
                 into(a._last_name),
                 into(a._email),
                 into(a._title),
                 into(a._login),
                 into(a._password),
-                use(id),
+                use(uuid),
                 range(0, 1); //  iterate over result set one row at a time
 
             select.execute();
@@ -130,23 +137,23 @@ namespace database
         return {};
     }
 
-    std::optional<long> User::auth(std::string &login, std::string &password)
+    std::optional<std::string> User::auth(std::string login, std::string password)
     {
         try
         {
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement select(session);
-            long id;
-            std::string sharding_hint = database::Database::sharding_hint(login);
-            select << "SELECT id FROM User where login=? and password=?" + sharding_hint,
-                into(id),
+            std::string uuid = User::generate_uuid(login);
+            std::string sharding_hint = database::Database::sharding_hint(uuid);
+            select << "SELECT uuid FROM User where login=? and password=?" + sharding_hint,
+                into(uuid),
                 use(login),
                 use(password),
                 range(0, 1); //  iterate over result set one row at a time
 
             select.execute();
             Poco::Data::RecordSet rs(select);
-            if (rs.moveFirst()) return id;
+            if (rs.moveFirst()) return uuid;
         }
 
         catch (Poco::Data::MySQL::ConnectionException &e)
@@ -166,23 +173,23 @@ namespace database
         std::stringstream ss;
         Poco::JSON::Stringifier::stringify(toJSON(), ss);
         std::string message = ss.str();
-        database::Cache::get().put(_id, message);
+        database::Cache::get().put(_uuid, message);
     }
 
-    std::optional<User> User::read_from_cache_by_id(long id)
+    std::optional<User> User::read_from_cache_by_id(const std::string& uuid)
     {
 
         try
         {
             std::string result;
-            if (database::Cache::get().get(id, result))
+            if (database::Cache::get().get(uuid, result))
                 return fromJSON(result);
             else
                 return {};
         }
         catch (std::exception& err)
         {
-            std::cerr << "Error while trying to read User " << id << " from cache :" << err.what() << std::endl;
+            std::cerr << "Error while trying to read User " << uuid << " from cache :" << err.what() << std::endl;
             return {};
         }
     }
@@ -196,10 +203,11 @@ namespace database
             std::vector<User> result;
             User a;
             for(auto& hint : database::Database::get_all_hints()) {
-                std::string query = "SELECT id, first_name, last_name, email, title, login, password FROM User" + hint;
+                std::string query = "SELECT id, uuid, first_name, last_name, email, title, login, password FROM User" + hint;
                 Statement select(session);
                 select << query,
                     into(a._id),
+                    into(a._uuid),
                     into(a._first_name),
                     into(a._last_name),
                     into(a._email),
@@ -243,8 +251,9 @@ namespace database
             last_name += "%";
             for(auto& hint : database::Database::get_all_hints()) {
                 Statement select(session);
-                select << "SELECT id, first_name, last_name, email, title, login, password FROM User where first_name LIKE ? and last_name LIKE ? "+hint,
+                select << "SELECT id, uuid, first_name, last_name, email, title, login, password FROM User where first_name LIKE ? and last_name LIKE ? "+hint,
                     into(a._id),
+                    into(a._uuid),
                     into(a._first_name),
                     into(a._last_name),
                     into(a._email),
@@ -277,6 +286,35 @@ namespace database
         }
     }
 
+    std::string User::generate_uuid(const std::string &login) {
+        static UUID nsid = UUIDGenerator::defaultGenerator().createFromName({}, "User");
+        return UUIDGenerator::defaultGenerator().createFromName(nsid, login).toString();
+    }
+
+    bool User::exists_in_mysql() {
+        try {
+            Poco::Data::Session session = database::Database::get().create_session();
+            Poco::Data::Statement check_existence(session);
+            std::string shard_hint = database::Database::sharding_hint(_uuid);
+            int count = 0;
+            check_existence << "SELECT COUNT(id) FROM User WHERE uuid=?" + shard_hint,
+                            into(count),
+                            use(_uuid),
+                            range(0, 1);
+            if (!check_existence.done()) {
+                check_existence.execute();
+            }
+            return count;
+
+        } catch (Poco::Data::MySQL::ConnectionException &e) {
+            std::cout << "connection:" << e.what() << std::endl;
+            throw;
+        } catch (Poco::Data::MySQL::StatementException &e) {
+            std::cout << "statement:" << e.what() << std::endl;
+            throw;
+        }
+    }
+
     void User::save_to_mysql()
     {
 
@@ -284,9 +322,10 @@ namespace database
         {
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement insert(session);
-            std::string shard_hint = database::Database::sharding_hint(_login);
+            std::string shard_hint = database::Database::sharding_hint(_uuid);
 
-            insert << "INSERT INTO User (first_name,last_name,email,title,login,password) VALUES(?, ?, ?, ?, ?, ?)" + shard_hint,
+            insert << "INSERT INTO User (uuid, first_name,last_name,email,title,login,password) VALUES(?, ?, ?, ?, ?, ?)" + shard_hint,
+                use(_uuid),
                 use(_first_name),
                 use(_last_name),
                 use(_email),
@@ -294,18 +333,21 @@ namespace database
                 use(_login),
                 use(_password);
 
+
             insert.execute();
 
             Poco::Data::Statement select(session);
-            select << "SELECT LAST_INSERT_ID()",
+            select << "SELECT LAST_INSERT_ID()" + shard_hint,
                 into(_id),
                 range(0, 1); //  iterate over result set one row at a time
 
-            if (!select.done())
-            {
+            if (!select.done()) {
                 select.execute();
             }
-            std::cout << "inserted:" << _id << "in shard: " << shard_hint << std::endl;
+            std::cout << "inserted:\n"
+                      << "id in database: " << _id << "\n"
+                      << "database shard: " << shard_hint << "\n"
+                      << std::endl;
         }
         catch (Poco::Data::MySQL::ConnectionException &e)
         {
@@ -345,6 +387,10 @@ namespace database
         return _id;
     }
 
+    const std::string &User::get_uuid() const {
+        return _uuid;
+    }
+
     const std::string &User::get_first_name() const
     {
         return _first_name;
@@ -368,6 +414,10 @@ namespace database
     long &User::id()
     {
         return _id;
+    }
+
+    std::string &User::uuid() {
+        return _uuid;
     }
 
     std::string &User::first_name()

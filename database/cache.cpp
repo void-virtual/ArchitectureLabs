@@ -26,18 +26,18 @@ namespace database
         return instance;
     }
 
-    void Cache::put([[maybe_unused]] long id, [[maybe_unused]] const std::string &val)
+    void Cache::put([[maybe_unused]] const std::string& uuid, [[maybe_unused]] const std::string &val)
     {
         std::lock_guard<std::mutex> lck(_mtx);
         rediscpp::value response = rediscpp::execute(*_stream, "set",
-                                                     std::to_string(id),
+                                                     uuid,
                                                      val, "ex", "60");
     }
 
-    bool Cache::get([[maybe_unused]] long id, [[maybe_unused]] std::string &val)
+    bool Cache::get([[maybe_unused]] const std::string& uuid, [[maybe_unused]] std::string &val)
     {
         std::lock_guard<std::mutex> lck(_mtx);
-        rediscpp::value response = rediscpp::execute(*_stream, "get", std::to_string(id));
+        rediscpp::value response = rediscpp::execute(*_stream, "get", uuid);
 
         if (response.is_error_message())
             return false;
