@@ -114,7 +114,17 @@ public:
         try {
             HTMLForm form(request, request.stream());
             if (isGet(request) && form.has("all_users")) {
-
+                std::vector<database::User> all_users = database::User::read_all();
+                Poco::JSON::Array items;
+                for (const database::User& user : all_users) {
+                    items.add(user.get_uuid());
+                }
+                response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+                response.setChunkedTransferEncoding(true);
+                response.setContentType("application/json");
+                std::ostream & ostr = response.send();
+                Poco::JSON::Stringifier::stringify(items,ostr);
+                return;
             }
 
             if (isGet(request) && form.has("user")) {

@@ -140,6 +140,7 @@ namespace database
         return {};
     }
 
+
     std::optional<std::string> User::auth(std::string login, std::string password)
     {
         try
