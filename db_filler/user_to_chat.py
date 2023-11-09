@@ -22,7 +22,7 @@ def generate_user_to_chat_list(users, chats, n=1):
 
 def insert_user_to_chats(fake_user_to_chats):
     connection = None
-
+    user_to_chats_cleared = [dict(t) for t in {tuple(d.items()) for d in l}]
     connection = basemod.MySQLConnection(
         host="proxysql",
         port="6033",
@@ -46,5 +46,5 @@ def insert_user_to_chats(fake_user_to_chats):
 
     connection.insert_values(("INSERT INTO `UserToChat` "
         "(`chat_id`, `user_id`) "
-        "VALUES (%(chat_id)s, %(user_id)s)"), fake_user_to_chats, lambda x : 0)
+        "VALUES (%(chat_id)s, %(user_id)s)"), user_to_chats_cleared, lambda x : 0)
 

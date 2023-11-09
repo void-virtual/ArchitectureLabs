@@ -34,6 +34,8 @@ class MySQLConnection:
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
                 print("already exists.")
+            if err.errno == errorcode.ER_DUP_ENTRY:
+                print("already existst")
             else:
                 print(err.msg)
         else:
@@ -47,6 +49,8 @@ class MySQLConnection:
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
                 print("already exists.")
+            if err.errno == errorcode.ER_DUP_ENTRY:
+                print("already existst")
             else:
                 print(err.msg)
         else:

@@ -8,4 +8,4 @@ ARG DROP_DOCKR_CACHE=true
 RUN git clone https://github.com/ilya89099/ArchitectureLabs.git
 RUN sudo ldconfig
 RUN cd ArchitectureLabs && mkdir build && cd build && cmake  .. && make
-ENTRYPOINT [ "ArchitectureLabs/build/messanger_api" ]
+ENTRYPOINT [ "ArchitectureLabs/build/messenger_api" ]

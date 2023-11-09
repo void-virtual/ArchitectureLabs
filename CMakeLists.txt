@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 project(hl_server C CXX)
 
-SET(MESSANGER_API_BINARY "messanger_api")
+SET(MESSENGER_API_BINARY "messenger_api")
 SET(AUTH_SERVICE "auth_api")
 SET(REDISCPP_FLAGS "-DREDISCPP_HEADER_ONLY=ON")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall ${REDISCPP_FLAGS}")
@@ -26,7 +26,7 @@ include_directories("/usr/local/include/redis-cpp")
 include_directories("/usr/local/include/mysql")
 link_directories("/usr/local/lib")
 
-add_executable(${MESSANGER_API_BINARY} messanger_api_service/main.cpp 
+add_executable(${MESSENGER_API_BINARY} messenger_api_service/main.cpp
                                  config/config.cpp 
                                  database/database.cpp
                                  database/user.cpp
@@ -36,12 +36,12 @@ add_executable(${MESSANGER_API_BINARY} messanger_api_service/main.cpp
                                  database/cache.cpp)
 
 
-target_include_directories(${MESSANGER_API_BINARY} PRIVATE "${CMAKE_BINARY_DIR}")
-target_compile_options(${MESSANGER_API_BINARY} PRIVATE -Wall -Wextra -pedantic -Werror )
-set_target_properties(${MESSANGER_API_BINARY} PROPERTIES LINKER_LANGUAGE CXX)
-set_target_properties(${MESSANGER_API_BINARY} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+target_include_directories(${MESSENGER_API_BINARY} PRIVATE "${CMAKE_BINARY_DIR}")
+target_compile_options(${MESSENGER_API_BINARY} PRIVATE -Wall -Wextra -pedantic -Werror )
+set_target_properties(${MESSENGER_API_BINARY} PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(${MESSENGER_API_BINARY} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(${MESSANGER_API_BINARY} PRIVATE 
+target_link_libraries(${MESSENGER_API_BINARY} PRIVATE
                              ${CMAKE_THREAD_LIBS_INIT} 
                              ${Poco_LIBRARIES}
                              "PocoData"

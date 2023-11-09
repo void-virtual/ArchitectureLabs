@@ -5,9 +5,7 @@ info:
   description: Пример API для первого домашнего задания по курсу Архитектура программных систем
 servers:
   - url: http://localhost:8080
-    description: Управление чатами и сообщениями
-  - url: http://localhost:8081
-    description: Управление пользователями
+    description: Message Server
 paths:
   /chat/searchByUserId:
     get:
@@ -189,163 +187,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  
-  
-  /search:
-    get:
-      summary: (СЕРВИС АВТОРИЗАЦИИ) Поиск пользователей по маске имени и фамилии
-      parameters:
-      - name: first_name
-        description: Имя
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: last_name
-        description: Фамилия
-        in: query
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: The users for the provided masks
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/users'
-        404:
-          description: No user found for the provided mask
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        500:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /auth:
-    get:
-      summary: (СЕРВИС АВТОРИЗАЦИИ) Проверка аутентификации
-      parameters:
-      - name: token
-        description: Токен пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: User ID
-          content:
-            application/json:
-              schema:
-               type: object
-               required:
-                 - user_id
-               properties:
-                 user_id:
-                  type: integer
-        401:
-          description: Not authentication
-          content:
-            application/json:
-              schema:
-                type: string
-  /user:
-    put:
-      summary: (СЕРВИС АВТОРИЗАЦИИ) Получение токена для пользователя
-      parameters:
-      - name: login
-        description: Уникальный идентификатор пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: password
-        description: Пароль пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Токен пользователя
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - token
-                properties:
-                  token:
-                    type: string
-        500:
-          description: Неожиданная ошибка
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    post:
-      summary: (СЕРВИС АВТОРИЗАЦИИ) Добавление нового пользователя
-      parameters:
-      - name: first_name
-        description: Имя пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: last_name
-        description: Фамилия пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: email
-        description: email пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: title
-        description: Форма обращение к пользователя 
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: login
-        description: login пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      - name: password
-        description: пароль пользователя
-        in: query
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Идентификатор, добавленного пользователя
-          content:
-            application/json:
-              schema:
-                type: integer
-        404:
-          description: Ошибка добавления пользователя
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        500:
-          description: Неожиданная ошибка
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 components:
   schemas:
     message_id:
@@ -353,7 +194,7 @@ components:
       type: integer
     user_id:
       description: Уникальный идентификатор пользователя
-      type: integer
+      type: string
     chat_id:
       description: Идентификатор чата
       type: integer
@@ -391,6 +232,8 @@ components:
         - password
       properties:
         id:
+          type: integer
+        uuid:
           $ref: '#/components/schemas/user_id'
         first_name:
           type: string

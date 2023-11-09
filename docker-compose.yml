@@ -87,11 +87,11 @@ services:
     volumes:
       - cache:/data
 
-  messanger-api:
+  messenger-api:
     build:
-      context: messanger_api_service
+      context: messenger_api_service
       dockerfile: Dockerfile
-    container_name: messanger-api
+    container_name: messenger-api
     environment:
       - AUTH_API_HOST=auth-api
       - CACHE=cache:6379

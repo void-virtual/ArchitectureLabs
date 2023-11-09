@@ -5,7 +5,7 @@ info:
   description: Auth service API
 servers:
   - url: http://localhost:8081
-    description: Example server
+    description: Auth server
 paths:
   /user:
     get:
